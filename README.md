@@ -15,7 +15,7 @@ Unsupervised detection of anomaly points in time series is a challenging problem
 ## Get Started
 
 1. Install Python 3.6, PyTorch 1.4.0
-2. Download data. You can obtain four benchmarks from [Tsinghua Cloud](https://cloud.tsinghua.edu.cn/d/9605612594f0423f891e/) **All the datasets are well pre-processed** .Place them under the dataset folder.
+2. Download data. You can obtain four benchmarks from [Tsinghua Cloud](https://cloud.tsinghua.edu.cn/d/9605612594f0423f891e/) **All the datasets are well pre-processed** .
 3. Train and evaluate. We provide the experiment scripts of all benchmarks under the folder `./scripts`. You can reproduce the experiment results by
 ```bash
 bash ./scripts/SMD.sh
