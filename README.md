@@ -10,6 +10,7 @@ Unsupervised detection of anomaly points in time series is a challenging problem
 <p align="center">
 <img src=".\pics\structure.png" height = "350" alt="" align=center />
 </p>
+
 ## Get Started
 
 1. Install Python 3.6, PyTorch 1.4.0. (Note: Higher PyTorch version may cause error.)
@@ -29,6 +30,7 @@ We compare our model with 15 baselines, including THOC, InterFusion, etc. **Gene
 <p align="center">
 <img src=".\pics\result.png" height = "450" alt="" align=center />
 </p>
+
 ## Citation
 If you find this repo useful, please cite our paper. 
 
