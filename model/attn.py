@@ -26,7 +26,6 @@ class AnomalyAttention(nn.Module):
         self.output_attention = output_attention
         self.dropout = nn.Dropout(attention_dropout)
         window_size = win_size
-        self.conv1 = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=5, padding=2)
         self.distances = torch.zeros((window_size, window_size)).cuda()
         for i in range(window_size):
             for j in range(window_size):
