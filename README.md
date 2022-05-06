@@ -1,5 +1,5 @@
-# Anomaly-Transformer
-Anomaly Transformer: Time Series Anomaly Detection with Association Discrepancy" (ICLR 2022 Spotlight)
+# Anomaly-Transformer (ICLR 2022 Spotlight)
+Anomaly Transformer: Time Series Anomaly Detection with Association Discrepancy"
 
 Unsupervised detection of anomaly points in time series is a challenging problem, which requires the model to learn informative representation and derive a distinguishable criterion. In this paper, we propose the Anomaly Transformer in these three folds:
 
