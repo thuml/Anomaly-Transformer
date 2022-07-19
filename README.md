@@ -23,7 +23,7 @@ bash ./scripts/SMAP.sh
 bash ./scripts/PSM.sh
 ```
 
-Especially, we use the adjustment operation [Xu et al, 2018](https://arxiv.org/pdf/1802.03903.pdf) for model evaluation. If you have questions about this, please see this [issue](https://github.com/thuml/Anomaly-Transformer/issues/14) or email us.
+Especially, we use the adjustment operation [Xu et al, 2018](https://arxiv.org/pdf/1802.03903.pdf) for model evaluation. If you have questions about this, please see this [issue](https://github.com/thuml/Anomaly-Transformer/issues/14).
 
 ## Main Result
 
