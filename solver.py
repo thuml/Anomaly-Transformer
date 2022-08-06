@@ -187,7 +187,6 @@ class Solver(object):
 
                 # Minimax strategy
                 loss1.backward(retain_graph=True)
-                self.optimizer.step()
                 loss2.backward()
                 self.optimizer.step()
 
