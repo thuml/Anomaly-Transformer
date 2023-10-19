@@ -5,8 +5,10 @@ import numpy as np
 import math
 from math import sqrt
 import os
-
-
+seed_num=500
+torch.manual_seed(seed_num)
+torch.cuda.manual_seed(seed_num)
+torch.cuda.manual_seed_all(seed_num)
 class TriangularCausalMask():
     def __init__(self, B, L, device="cpu"):
         mask_shape = [B, 1, L, L]

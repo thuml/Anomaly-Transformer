@@ -2,10 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .attn import AnomalyAttention, AttentionLayer
+from .attn import AnomalyAttention, AttentionLayer, seed_num
 from .embed import DataEmbedding, TokenEmbedding
-
-
+seed_num=seed_num
+torch.manual_seed(seed_num)
+torch.cuda.manual_seed(seed_num)
+torch.cuda.manual_seed_all(seed_num)
 class EncoderLayer(nn.Module):
     def __init__(self, attention, d_model, d_ff=None, dropout=0.1, activation="relu"):
         super(EncoderLayer, self).__init__()
