@@ -108,7 +108,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-dataset/
+dataset/converted_dataset/
 
 # Spyder project settings
 .spyderproject
