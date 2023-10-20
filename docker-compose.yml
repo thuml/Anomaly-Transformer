@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+    AnomalyExp:
+        shm_size: 4gb
+        image: hyukkyukang/anomaly_explanation:latest
+        container_name: AnomalyExp
+        stdin_open: true
+        tty: true
+        network_mode: "host"
+        environment:
+            - TZ=Asia/Seoul
+        volumes:
+            - /etc/timezone:/etc/timezone:ro 
+            - ./:/root/Anomaly_Explanation
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - capabilities: [gpu]
