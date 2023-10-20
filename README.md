@@ -22,11 +22,46 @@ pip install -r requirements.txt
 ```
 ### Dataset
 Download data. You can obtain four benchmarks from [Tsinghua Cloud](https://cloud.tsinghua.edu.cn/d/9605612594f0423f891e/) or [Google Cloud](https://drive.google.com/drive/folders/1gisthCoE-RrKJ0j3KPV7xiibhHWT9qRm?usp=sharing). **All the datasets are well pre-processed**. For the SWaT dataset, you can apply for it by following its official tutorial.
-#### DBsherlock
-- To train and evaluate a model using the DBsherlock dataset, a dataset converted from the .mat file to a json file is required. Place the corresponding json file in the `Anomaly_Explanation/dataset/converted_dataset` directory.
-- You can generate training datasets, validation sets, and test sets using the following command. The `--input_path` allows you to specify the path to the DBsherlock dataset json file. The `--output_path` allows you to specify the folder where the processed data will be saved.
+
+#### Download
+Download SMD, SMAP, PSM, and MSL dataset
 ```bash
-python ./dataset/process_dataset.py --input_path input_path --output_path output_path
+python scripts/download_datasets.py
+```
+
+#### Preprocess data
+
+Convert DBSherlock data (.mat file to .json file):
+```bash
+python src/data_factory/dbsherlock/convert.py \
+    --input dataset/dbsherlock/tpcc_16w.mat \
+    --out_dir dataset/dbsherlock/converted/ \
+    --prefix tpcc_16w
+
+python src/data_factory/dbsherlock/convert.py \
+    --input dataset/dbsherlock/tpcc_500w.mat \
+    --out_dir dataset/dbsherlock/converted/ \
+    --prefix tpcc_500w
+
+python src/data_factory/dbsherlock/convert.py \
+    --input dataset/dbsherlock/tpce_3000.mat \
+    --out_dir dataset/dbsherlock/converted/ \
+    --prefix tpce_3000
+```
+
+Convert DBSherlock data to train & validate Anomaly Transformer
+```bash
+python src/data_factory/dbsherlock/process.py \
+    --input_path dataset/dbsherlock/converted/tpcc_16w_test.json \
+    --output_path dataset/dbsherlock/processed/tpcc_16w/
+
+python src/data_factory/dbsherlock/process.py \
+    --input_path dataset/dbsherlock/converted/tpcc_500w_test.json \
+    --output_path dataset/dbsherlock/processed/tpcc_500w/
+
+python src/data_factory/dbsherlock/process.py \
+    --input_path dataset/dbsherlock/converted/tpce_3000_test.json \
+    --output_path dataset/dbsherlock/processed/tpce_3000/
 ```
 ### Train and Evaluate
 We provide the experiment scripts of all benchmarks under the folder `./scripts`. You can reproduce the experiment results as follows:

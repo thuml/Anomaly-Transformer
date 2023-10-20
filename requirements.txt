@@ -1,4 +1,6 @@
-hkkang_utils
+wget    
+gdown
 Pillow
 pandas
 scikit-learn
+hkkang_utils
