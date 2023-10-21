@@ -24,7 +24,7 @@ pip install -r requirements.txt
 Download data. You can obtain four benchmarks from [Tsinghua Cloud](https://cloud.tsinghua.edu.cn/d/9605612594f0423f891e/) or [Google Cloud](https://drive.google.com/drive/folders/1gisthCoE-RrKJ0j3KPV7xiibhHWT9qRm?usp=sharing). **All the datasets are well pre-processed**. For the SWaT dataset, you can apply for it by following its official tutorial.
 
 #### Download
-Download SMD, SMAP, PSM, and MSL dataset
+Download SMD, SMAP, PSM, MSL, and DBSherlock dataset
 ```bash
 python scripts/download_datasets.py
 ```
