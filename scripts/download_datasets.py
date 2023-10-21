@@ -52,11 +52,13 @@ def main(output_dir: str) -> None:
             zip_ref.extractall(unzip_path)
 
         # Move files to parent directory
-        move_files_to_parent_dir(os.path.join(output_dir, name), name)
+        child_dir = os.path.join(output_dir, name)
+        if os.path.exists(child_dir):
+            move_files_to_parent_dir(child_dir, name)
+            print("Clean __MACOSX directory...")
+            shutil.rmtree(os.path.join(output_dir, name, "__MACOSX"))
 
         # Clean up
-        print("Clean __MACOSX directory...")
-        shutil.rmtree(os.path.join(output_dir, name, "__MACOSX"))
         print("Removing zip file...")
         os.remove(download_path)
 

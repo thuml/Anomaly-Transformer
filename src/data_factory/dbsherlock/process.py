@@ -1,10 +1,12 @@
 import argparse
 import json
 import os
+import pickle
 from typing import *
 
 import numpy as np
 import tqdm
+from src.data_factory.dbsherlock.utils import anomaly_causes
 
 
 def create_data(
@@ -22,15 +24,20 @@ def process_data(data: Dict, train_num: int = 8) -> Tuple[Dict, int, int]:
     anomaly_num = 0
     train_values = []
     train_labels = []
+    train_classes = []
     val_values = []
     val_labels = []
+    val_classes = []
     test_values = []
     test_labels = []
+    test_classes = []
+    distinct_time_range = set()
     for data_dic in tqdm.tqdm(data["data"]):
         cause = data_dic["cause"]
         values = data_dic["values"]  # Shape: (time step, attribute num)
         values_np = np.array(values)
         abnormal_regions = data_dic["abnormal_regions"]
+        distinct_time_range.add(values_np.shape[0])
 
         # Pass the data with poor physical design (Following the MacroBase paper)
         if cause == "Poor Physical Design":
@@ -46,29 +53,38 @@ def process_data(data: Dict, train_num: int = 8) -> Tuple[Dict, int, int]:
         else:
             per_cause_cnt[cause] = 1
 
-        # Split dataset
+        # Create data
         labels, values = create_data(values_np, abnormal_regions)
+
+        # Split dataset
         if per_cause_cnt[cause] < train_num:
-            # Create training set
+            # Add to training set
             train_labels.append(labels)
             train_values.append(values)
+            train_classes.append([anomaly_causes.index(cause)] * len(labels))
         elif per_cause_cnt[cause] == train_num:
-            # Create validation set
+            # Add to validation set
             val_labels.append(labels)
             val_values.append(values)
+            val_classes.append([anomaly_causes.index(cause)] * len(labels))
         else:
-            # Create testing set
+            # Add to testing set
             test_labels.append(labels)
             test_values.append(values)
+            test_classes.append([anomaly_causes.index(cause)] * len(labels))
 
     processed_data = {
-        "train": np.vstack(train_values),
-        "train_label": sum(train_labels, []),
-        "val": np.vstack(val_values),
-        "val_label": sum(val_labels, []),
-        "test": np.vstack(test_values),
-        "test_label": sum(test_labels, []),
+        "train": train_values,
+        "train_label": train_labels,
+        "train_class": train_classes,
+        "val": val_values,
+        "val_label": val_labels,
+        "val_class": val_classes,
+        "test": test_values,
+        "test_label": test_labels,
+        "test_class": test_classes,
     }
+
     return processed_data, total_num, anomaly_num
 
 
@@ -76,12 +92,12 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--input_path",
-        default="/root/Anomaly_Explanation/dataset/converted_dataset/tpcc_500w_test.json",
+        default="/root/Anomaly_Explanation/dataset/dbsherlock/converted/tpcc_500w_test.json",
         help="path of the dbsherlock dataset",
     )
     parser.add_argument(
         "--output_path",
-        default="/root/Anomaly_Explanation/dataset/processed_dataset",
+        default="/root/Anomaly_Explanation/dataset/dbsherlock/processed/tpcc_500w/",
         help="path of the processed dataset",
     )
     return parser.parse_args()
@@ -102,7 +118,18 @@ if __name__ == "__main__":
     print(f"Total:{total_num}")
     print(f"Anomaly:{anomaly_num}")
     print(f"AR:{float(anomaly_num/total_num)}")
-    for mode in ["train", "train_label", "val", "val_label", "test", "test_label"]:
-        save_path = output_path + "/" + mode + ".npy"
-        np.save(save_path, processed_data[mode])
+    for mode in [
+        "train",
+        "train_label",
+        "train_class",
+        "val",
+        "val_label",
+        "val_class",
+        "test",
+        "test_label",
+        "test_class",
+    ]:
+        save_path = output_path + "/" + mode + ".pkl"
+        with open(save_path, "wb") as file:
+            pickle.dump(processed_data[mode], file)
         print(f"{mode}_num:{len(processed_data[mode])}")

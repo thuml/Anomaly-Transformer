@@ -9,6 +9,19 @@ from src.data_factory.dbsherlock.data import AnomalyData, AnomalyDataset
 
 logger = logging.getLogger("DBSherlockDataConverter")
 
+anomaly_causes = [
+    "Poorly Written Query",
+    "Poor Physical Design",
+    "Workload Spike",
+    "I/O Saturation",
+    "DB Backup",
+    "Table Restore",
+    "CPU Saturation",
+    "Flush Log/Table",
+    "Network Congestion",
+    "Lock Contention",
+]
+
 
 def to_zero_based_index(indices: List[int]) -> List[int]:
     assert all([i > 0 for i in indices]), f"Indices are already zero-based: {indices}"
