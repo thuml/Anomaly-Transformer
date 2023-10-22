@@ -3,11 +3,26 @@ import json
 import os
 import pickle
 from typing import *
-
+import random
 import numpy as np
 import tqdm
 from src.data_factory.dbsherlock.utils import anomaly_causes
 
+def partition(train_num, seed=None):
+    if seed is not None:
+        random.seed(seed)
+    
+    dataset_ids = list(range(11))
+    random.shuffle(dataset_ids)
+    
+    cut1 = train_num
+    cut2 = cut1 + 1
+
+    train_ids = dataset_ids[:cut1]
+    val_ids = dataset_ids[cut1:cut2]
+    test_ids = dataset_ids[cut2:]
+    
+    return train_ids, val_ids, test_ids
 
 def create_data(
     values: np.array, abnormal_regions: List[int]
@@ -18,7 +33,7 @@ def create_data(
     return label, filtered_values
 
 
-def process_data(data: Dict, train_num: int = 8) -> Tuple[Dict, int, int]:
+def process_data(data: Dict, train_num: int = 8, seed: int = 0) -> Tuple[Dict, int, int, int]:
     per_cause_cnt: Dict[str, int] = {}
     total_num = 0
     anomaly_num = 0
@@ -32,6 +47,7 @@ def process_data(data: Dict, train_num: int = 8) -> Tuple[Dict, int, int]:
     test_labels = []
     test_classes = []
     distinct_time_range = set()
+    train_ids, val_ids, test_ids = partition(train_num, seed)
     for data_dic in tqdm.tqdm(data["data"]):
         cause = data_dic["cause"]
         values = data_dic["values"]  # Shape: (time step, attribute num)
@@ -51,18 +67,18 @@ def process_data(data: Dict, train_num: int = 8) -> Tuple[Dict, int, int]:
         if cause in per_cause_cnt:
             per_cause_cnt[cause] += 1
         else:
-            per_cause_cnt[cause] = 1
+            per_cause_cnt[cause] = 0
 
         # Create data
         labels, values = create_data(values_np, abnormal_regions)
-
+        
         # Split dataset
-        if per_cause_cnt[cause] < train_num:
+        if per_cause_cnt[cause] in train_ids:
             # Add to training set
             train_labels.append(labels)
             train_values.append(values)
             train_classes.append([anomaly_causes.index(cause)] * len(labels))
-        elif per_cause_cnt[cause] == train_num:
+        elif per_cause_cnt[cause] in val_ids:
             # Add to validation set
             val_labels.append(labels)
             val_values.append(values)
@@ -100,6 +116,11 @@ def parse_args():
         default="/root/Anomaly_Explanation/dataset/dbsherlock/processed/tpcc_500w/",
         help="path of the processed dataset",
     )
+    parser.add_argument(
+        "--random_seed", 
+        default=2200,
+        help="random seed, tpc-c: 16, tpc-e: 2200",
+    )
     return parser.parse_args()
 
 
@@ -114,7 +135,7 @@ if __name__ == "__main__":
     with open(input_path, "r") as file:
         data = json.load(file)
 
-    processed_data, total_num, anomaly_num = process_data(data)
+    processed_data, total_num, anomaly_num = process_data(data=data, seed=args.random_seed)
     print(f"Total:{total_num}")
     print(f"Anomaly:{anomaly_num}")
     print(f"AR:{float(anomaly_num/total_num)}")

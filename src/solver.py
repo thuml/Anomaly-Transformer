@@ -395,7 +395,7 @@ class Solver(object):
 
         # (2) find the threshold
         attens_energy = []
-        for i, (input_data, labels) in enumerate(self.thre_loader):
+        for i, (input_data, labels) in enumerate(self.vali_loader):
             input = input_data.float().to(self.device)
             output, series, prior, _ = self.model(input)
 

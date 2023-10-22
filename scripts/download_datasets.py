@@ -55,8 +55,10 @@ def main(output_dir: str) -> None:
         child_dir = os.path.join(output_dir, name)
         if os.path.exists(child_dir):
             move_files_to_parent_dir(child_dir, name)
-            print("Clean __MACOSX directory...")
-            shutil.rmtree(os.path.join(output_dir, name, "__MACOSX"))
+            macosx_dir = os.path.join(output_dir, name, "__MACOSX")
+            if os.path.exists(macosx_dir):
+                print("Clean __MACOSX directory...")
+                shutil.rmtree(macosx_dir)
 
         # Clean up
         print("Removing zip file...")
