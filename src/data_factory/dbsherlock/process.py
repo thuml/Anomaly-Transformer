@@ -118,8 +118,8 @@ def parse_args():
     )
     parser.add_argument(
         "--random_seed", 
-        default=2200,
-        help="random seed, tpc-c: 16, tpc-e: 2200",
+        default=1,
+        help="random seed",
     )
     return parser.parse_args()
 

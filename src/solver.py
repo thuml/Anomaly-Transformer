@@ -123,7 +123,9 @@ class Solver(object):
         self.build_model()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.criterion = nn.MSELoss()
-
+        self.temperature = 50
+        self.find_best = config["find_best"]
+        
     def build_model(self):
         self.model = AnomalyTransformer(
             win_size=self.win_size, enc_in=self.input_c, c_out=self.output_c, e_layers=3
@@ -319,7 +321,6 @@ class Solver(object):
             )
         )
         self.model.eval()
-        temperature = 50
 
         print("======================TEST MODE======================")
 
@@ -345,7 +346,7 @@ class Solver(object):
                                 ).repeat(1, 1, 1, self.win_size)
                             ).detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
                     prior_loss = (
                         my_kl_loss(
@@ -357,7 +358,7 @@ class Solver(object):
                             ),
                             series[u].detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
                 else:
                     series_loss += (
@@ -370,7 +371,7 @@ class Solver(object):
                                 ).repeat(1, 1, 1, self.win_size)
                             ).detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
                     prior_loss += (
                         my_kl_loss(
@@ -382,7 +383,7 @@ class Solver(object):
                             ),
                             series[u].detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
 
             metric = torch.softmax((-series_loss - prior_loss), dim=-1)
@@ -415,7 +416,7 @@ class Solver(object):
                                 ).repeat(1, 1, 1, self.win_size)
                             ).detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
                     prior_loss = (
                         my_kl_loss(
@@ -427,7 +428,7 @@ class Solver(object):
                             ),
                             series[u].detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
                 else:
                     series_loss += (
@@ -440,7 +441,7 @@ class Solver(object):
                                 ).repeat(1, 1, 1, self.win_size)
                             ).detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
                     prior_loss += (
                         my_kl_loss(
@@ -452,7 +453,7 @@ class Solver(object):
                             ),
                             series[u].detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
             # Metric
             metric = torch.softmax((-series_loss - prior_loss), dim=-1)
@@ -463,13 +464,20 @@ class Solver(object):
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)
         combined_energy = np.concatenate([train_energy, test_energy], axis=0)
-        thresh = np.percentile(combined_energy, 100 - self.anormly_ratio)
+        if self.find_best:
+            thresh = self.find_best_threshold(combined_energy, criterion)
+        else:
+            thresh = np.percentile(combined_energy, 100 - self.anormly_ratio)
         print("Threshold :", thresh)
 
         # (3) evaluation on the test set
+        accuracy, precision, recall, f_score = self.get_metrics_for_threshold(criterion, thresh, self.test_loader)
+        return accuracy, precision, recall, f_score
+    
+    def get_metrics_for_threshold(self, criterion, thresh, data_loader=None):
         test_labels = []
         attens_energy = []
-        for i, (input_data, labels) in enumerate(self.thre_loader):
+        for i, (input_data, labels) in enumerate(data_loader):
             input = input_data.float().to(self.device)
             output, series, prior, _ = self.model(input)
 
@@ -489,7 +497,7 @@ class Solver(object):
                                 ).repeat(1, 1, 1, self.win_size)
                             ).detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
                     prior_loss = (
                         my_kl_loss(
@@ -501,7 +509,7 @@ class Solver(object):
                             ),
                             series[u].detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
                 else:
                     series_loss += (
@@ -514,7 +522,7 @@ class Solver(object):
                                 ).repeat(1, 1, 1, self.win_size)
                             ).detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
                     prior_loss += (
                         my_kl_loss(
@@ -526,7 +534,7 @@ class Solver(object):
                             ),
                             series[u].detach(),
                         )
-                        * temperature
+                        * self.temperature
                     )
             metric = torch.softmax((-series_loss - prior_loss), dim=-1)
 
@@ -588,3 +596,21 @@ class Solver(object):
         )
 
         return accuracy, precision, recall, f_score
+    
+    def find_best_threshold(self, combined_energy, criterion, ar_range=np.arange(0, 5.1, 0.1)):
+        best_f_score = 0
+        best_thresh = None
+        best_ar = None
+        print("Finding best threshold...")
+        for anomaly_ratio in ar_range:
+            print(f"Anomaly Ratio: {anomaly_ratio}")
+            thresh = np.percentile(combined_energy, 100 - anomaly_ratio)
+            accuracy, precision, recall, f_score = self.get_metrics_for_threshold(criterion, thresh, self.vali_loader)
+            if f_score > best_f_score:
+                best_f_score = f_score
+                best_thresh = thresh
+                best_ar = anomaly_ratio
+        print(f"Best F1 Score: {best_f_score}")
+        print(f"Best Anomaly Ratio: {best_ar}")
+        return best_thresh
+                

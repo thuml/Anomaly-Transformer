@@ -43,6 +43,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_save_path", type=str, default="checkpoints")
     parser.add_argument("--anormly_ratio", type=float, default=4.00)
     parser.add_argument("--step_size", type=int, default=25)
+    parser.add_argument("--find_best", type=bool, default=True)
     parser.add_argument(
         "--cause", type=str, default="all", choices=["all"] + anomaly_causes
     )
