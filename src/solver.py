@@ -327,6 +327,7 @@ class Solver(object):
         criterion = nn.MSELoss(reduce=False)
 
         # (1) stastic on the train set
+        train_labels = []
         attens_energy = []
         for i, (input_data, labels) in enumerate(self.train_loader):
             input = input_data.float().to(self.device)
@@ -390,11 +391,13 @@ class Solver(object):
             cri = metric * loss
             cri = cri.detach().cpu().numpy()
             attens_energy.append(cri)
+            train_labels.append(labels)
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         train_energy = np.array(attens_energy)
 
         # (2) find the threshold
+        val_labels = []
         attens_energy = []
         for i, (input_data, labels) in enumerate(self.vali_loader):
             input = input_data.float().to(self.device)
@@ -460,24 +463,27 @@ class Solver(object):
             cri = metric * loss
             cri = cri.detach().cpu().numpy()
             attens_energy.append(cri)
+            val_labels.append(labels)
 
         attens_energy = np.concatenate(attens_energy, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)
+        train_labels = np.concatenate(train_labels, axis=0).reshape(-1)
+        train_labels = np.array(train_labels)
+        val_labels = np.concatenate(val_labels, axis=0).reshape(-1)
+        val_labels = np.array(val_labels)
+        
         combined_energy = np.concatenate([train_energy, test_energy], axis=0)
+        combined_labels = np.concatenate([train_labels, val_labels], axis=0)
         if self.find_best:
-            thresh = self.find_best_threshold(combined_energy, criterion)
+            thresh = self.find_best_threshold(combined_energy, combined_labels)
         else:
             thresh = np.percentile(combined_energy, 100 - self.anormly_ratio)
         print("Threshold :", thresh)
 
         # (3) evaluation on the test set
-        accuracy, precision, recall, f_score = self.get_metrics_for_threshold(criterion, thresh, self.test_loader)
-        return accuracy, precision, recall, f_score
-    
-    def get_metrics_for_threshold(self, criterion, thresh, data_loader=None):
         test_labels = []
         attens_energy = []
-        for i, (input_data, labels) in enumerate(data_loader):
+        for i, (input_data, labels) in enumerate(self.test_loader):
             input = input_data.float().to(self.device)
             output, series, prior, _ = self.model(input)
 
@@ -547,10 +553,13 @@ class Solver(object):
         test_labels = np.concatenate(test_labels, axis=0).reshape(-1)
         test_energy = np.array(attens_energy)
         test_labels = np.array(test_labels)
+        accuracy, precision, recall, f_score = self.get_metrics_for_threshold(test_energy, test_labels, thresh)
+        return accuracy, precision, recall, f_score
+    
+    def get_metrics_for_threshold(self, energy, labels, thresh):
+        pred = (energy > thresh).astype(int)
 
-        pred = (test_energy > thresh).astype(int)
-
-        gt = test_labels.astype(int)
+        gt = labels.astype(int)
 
         print("pred:   ", pred.shape)
         print("gt:     ", gt.shape)
@@ -597,7 +606,7 @@ class Solver(object):
 
         return accuracy, precision, recall, f_score
     
-    def find_best_threshold(self, combined_energy, criterion, ar_range=np.arange(0, 5.1, 0.1)):
+    def find_best_threshold(self, combined_energy, combined_labels, ar_range=np.arange(0, 5.1, 0.1)):
         best_f_score = 0
         best_thresh = None
         best_ar = None
@@ -605,7 +614,7 @@ class Solver(object):
         for anomaly_ratio in ar_range:
             print(f"Anomaly Ratio: {anomaly_ratio}")
             thresh = np.percentile(combined_energy, 100 - anomaly_ratio)
-            accuracy, precision, recall, f_score = self.get_metrics_for_threshold(criterion, thresh, self.vali_loader)
+            accuracy, precision, recall, f_score = self.get_metrics_for_threshold(combined_energy, combined_labels, thresh)
             if f_score > best_f_score:
                 best_f_score = f_score
                 best_thresh = thresh

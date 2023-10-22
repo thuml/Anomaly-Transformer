@@ -4,46 +4,40 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Train DBSherlock",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/main.py",
+            "program": "/home/shpark/Anomaly_Explanation/src/main.py",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "python": "/home/shpark/anaconda3/envs/anomaly/bin/python",
             "args": [
-                "--anormly_ratio=2",
-                "--num_epochs=10",
-                "--batch_size=256",
-                "--mode=train",
-                "--dataset=DBS",
-                "--data_path=dataset/processed_dataset",
-                "--input_c=200",
-                "--output_c=200",
-                "--win_size=25",
-                "--step_size=25",
-            ]
+                "--mode", "train",
+                "--pretrained_model", "20",
+                "--data_path", "/home/shpark/Anomaly_Explanation/dataset/dbsherlock/processed/tpce_3000"//tpce_3000
+            ],
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0",
+            },
+            "justMyCode": true
         },
         {
             "name": "Python: Test DBSherlock",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/main.py",
+            "program": "/home/shpark/Anomaly_Explanation/src/main.py",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "python": "/home/shpark/anaconda3/envs/anomaly/bin/python",
             "args": [
-                "--anormly_ratio=2",
-                "--num_epochs=10",
-                "--batch_size=256",
-                "--mode=test",
-                "--dataset=DBS",
-                "--data_path=dataset/processed_dataset",
-                "--input_c=200",
-                "--output_c=200",
-                "--win_size=25",
-                "--step_size=25",
-                "--pretrained_model=20",
-            ]
+                "--mode", "test",
+                "--pretrained_model", "20",
+                "--data_path", "/home/shpark/Anomaly_Explanation/dataset/dbsherlock/processed/tpce_3000"//tpce_3000
+            ],
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0",
+            },
+            "justMyCode": true
         }
     ]
 }
