@@ -25,11 +25,11 @@ class AnomalyAttention(nn.Module):
         self.mask_flag = mask_flag
         self.output_attention = output_attention
         self.dropout = nn.Dropout(attention_dropout)
-        window_size = win_size
-        self.distances = torch.zeros((window_size, window_size)).cuda()
-        for i in range(window_size):
-            for j in range(window_size):
-                self.distances[i][j] = abs(i - j)
+        self.win_size = win_size
+
+        i = torch.arange(self.win_size).view(-1,1).cuda()
+        j = torch.arange(self.win_size).view(1,-1).cuda()
+        self.distances = torch.abs(i-j)
 
     def forward(self, queries, keys, values, sigma, attn_mask):
         B, L, H, E = queries.shape
